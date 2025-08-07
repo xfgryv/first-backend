@@ -7,7 +7,47 @@ dotenv.config({
 });
 
 
-connectDB();
+connectDB()
+.then(
+    () =>{
+        app.on("error", (error) => {
+            console.log(`SOME ERROR OCCURED IN EXPRESS FILE ${error}`);
+            throw error;
+        })
+        app.listen(process.env.PORT || 8000, ()=>{
+            console.log(`Process is running on port : ${process.env.PORT}`)
+        })
+
+    }
+)
+.catch((error)=>{
+    console.log("MONGODB connection failed !!!", error)
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 import {DB_NAME} from "./constant";

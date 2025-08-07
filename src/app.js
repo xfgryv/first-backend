@@ -4,7 +4,7 @@ import cookieparser, { urlencoded } from "body-parser";
 
 
 let app = express();
-app.use(cors({//
+app.use(cors({//there are some option in cors which set its value 
     origin : process.env.CORS_ORIGIN,
     credentials : true
 }));
@@ -14,6 +14,6 @@ app.use(express.urlencoded({extended : true,
     limit : "16kb"
 }))//this will encode the url of the data sent by the user
 app.use(express.static("public"));//this will store some file in public file it is not important to name public
-app.use(cookieparser());//it is used for do set and update cookies on user browser with backend
+app.use(cookieparser());//it is used for do set and update cookies
 
 export {app};
