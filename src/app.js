@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";//CORS lets your frontend talk to your backend when they’re on different domains — and without it, the browser blocks the request for security
-import cookieparser, { urlencoded } from "body-parser";
+import cookieparser from "body-parser";
 
 
 let app = express();
