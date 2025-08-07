@@ -1,0 +1,19 @@
+import express from "express";
+import cors from "cors";//CORS lets your frontend talk to your backend when they’re on different domains — and without it, the browser blocks the request for security
+import cookieparser, { urlencoded } from "body-parser";
+
+
+let app = express();
+app.use(cors({//
+    origin : process.env.CORS_ORIGIN,
+    credentials : true
+}));
+
+app.use(express.json({limit : "16kb"}));//this is use for limiting the user to send data limited to 16kb
+app.use(express.urlencoded({extended : true,
+    limit : "16kb"
+}))//this will encode the url of the data sent by the user
+app.use(express.static("public"));//this will store some file in public file it is not important to name public
+app.use(cookieparser());//it is used for do set and update cookies on user browser with backend
+
+export {app};
