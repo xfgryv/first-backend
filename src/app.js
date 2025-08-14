@@ -22,7 +22,7 @@ app.use(cookieParser());//it is used for do set and update cookies
 import userRouter from "./routes/user.js"
 
 //routes declaration
-app.use("/api/v1/user/", userRouter);
+app.use("/api/v1/user", userRouter);
 
 
 export {app};
