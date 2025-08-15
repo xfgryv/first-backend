@@ -11,7 +11,7 @@ router.route("/register").post(upload.fields([
     maxCount : 1
     },
     {
-        nmae : "coverImage",
+        name : "coverImage",
         maxCount : 1
 }]), registerUser);
 

@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
-import ApiError from "../utils/apiError.js"
+import {ApiError} from "../utils/apiError.js"
 import z from "zod";
-import User from "../models/user.js";
+import {User} from "../models/user.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { apiResponese } from "../utils/apiResponse.js";
 
@@ -26,7 +26,7 @@ let registerUser = asyncHandler( async (req, res) =>{
     }
 
     const existingUser = await User.findOne({
-        $or: [{ email }, { username }],
+        $or: [{ email }, { username }]
     });
 
     if (existingUser) {
@@ -37,16 +37,23 @@ let registerUser = asyncHandler( async (req, res) =>{
             throw new ApiError(409, "Username already exists");
     }
 }
+    console.log("--- Inside registerUser controller ---");
+    console.log("Request Body:", req.body);
+    console.log("Request Files:", req.files);
 
     let avatarImagePath = req.files?.avatar[0]?.path;
-    let coverImagePath = req.files?.coverImage[0]?.path;
+    // let coverImagePath = req.files?.coverImage[0]?.path;
+    let coverImagePath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImagePath = req.files.coverImage[0].path
+    }
 
     if(!avatarImagePath){
         throw new ApiError(400, "Avatar file is required");
     }
     
-    let avatar = uploadOnCloudinary(avatarImagePath);
-    let coverImage = uploadOnCloudinary(coverImagePath);
+    let avatar = await uploadOnCloudinary(avatarImagePath);
+    let coverImage = await uploadOnCloudinary(coverImagePath);
 
     if(!avatar){
         throw new ApiError(400, "Avatar file is required");
@@ -58,7 +65,7 @@ let registerUser = asyncHandler( async (req, res) =>{
         coverImage : coverImage?.url || "",
         email,
         password,
-        username : username.LowerCase
+        username : username.toLowerCase()
     });
     const userCreated = await User.findById(user._id).select("-password -refereshToken");
     if(!userCreated){
