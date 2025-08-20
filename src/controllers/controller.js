@@ -184,6 +184,102 @@ const refereshAccessToken = asyncHandler(async(req, res)=>{
         )}catch (error) {
             throw new ApiError(401, error?.message || "Invalid refersh token")
     }
+});
+const changeCurrentPassword = asyncHandler(async(req, res)=>{
+    let {oldPassword, newPassword} = req.body;
+    let currentPassword = await User.findById(req.user?._id);
+    
+    const isPasswordCorrect = await currentPassword.isPasswordCorrect(oldPassword);
+    if(!isPasswordCorrect){
+        throw new ApiError(400, "Old password is incorrect");
+    }
+    currentPassword.password = newPassword;
+    await currentPassword.save({validateBeforeSave : false});
+
+    return res.status(200).json(
+        new apiResponese(200, {}, "password updated successfully")
+    )
 })
 
-export {registerUser, loginUser, logoutUser, refereshAccessToken}
+let getCurrentUser = asyncHandler(async(req, res) => {
+    // const user = await User.findById(req.user?._id)
+    return res
+    .status(200)
+    .json(new apiResponese(200, req.user, "Current user fetched successfully"));
+});
+
+const updateAccountDetails = asyncHandler(async(req, res)=>{
+    let {fullName, email} = req.body;
+    if(!fullName || !email){
+        throw new ApiError(400, "Full name and email are required");
+    }
+    let user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullName,
+                email
+            }
+        },
+        { new: true }
+    ).select("-password -refereshToken");
+
+    if(!user){
+        throw new ApiError(404, "User not found");
+    }
+
+    return res.status(200).json(
+        new apiResponese(200, {}, "Account details updated successfully")
+    );
+})
+
+const changeAvatar = asyncHandler(async(req, res) =>{
+    let newAvatar = req.file?.path;
+    if(!newAvatar){
+        throw new ApiError(400, "Avatar file is required");
+    }
+    let avatar = await uploadOnCloudinary(newAvatar);
+    if(!avatar){
+        throw new ApiError(400, "Error while uploading avatar to cloudinary");
+    }
+
+    let user = await User.findByIdAndUpdate(req.user?._id,{
+        $set: {
+            avatar: avatar.url
+        }
+    }, {new: true}).select("-password");
+
+    return res.status(200).json(
+        new apiResponese(200, {}, "Avatar updated successfully")
+    )
+    });
+let changeCoverImage = asyncHandler(async(req, res) =>{
+    let newCoverImage = req.file?.path;
+    if(!newCoverImage){
+        throw new ApiError(400, "Avatar file is required");
+    }
+    let coverImage = await uploadOnCloudinary(newCoverImage);
+    if(!coverImage){
+        throw new ApiError(400, "Error while uploading coverImage to cloudinary");
+    }
+
+    let user = await User.findByIdAndUpdate(req.user?._id,{
+        $set: {
+            coverImage: coverImage.url
+        }
+    }, {new: true}).select("-password");
+
+    return res.status(200).json(
+        new apiResponese(200, {}, "coverImage updated successfully")
+    )
+})
+
+export {registerUser,
+     loginUser,
+     logoutUser,
+     refereshAccessToken, 
+     changeCurrentPassword, 
+     getCurrentUser,
+     updateAccountDetails,
+     changeAvatar,
+     changeCoverImage};
