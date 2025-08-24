@@ -1,10 +1,11 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/apiError.js"
-import z from "zod";
+import z, { email } from "zod";
 import {User} from "../models/user.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { apiResponese } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 let generateAccessTokenAndRefereshToken = async(userId) => {
     try{
@@ -274,6 +275,108 @@ let changeCoverImage = asyncHandler(async(req, res) =>{
     )
 })
 
+//TASK 1 -- CREATE A CONTROLLER WHERE YOU WILL DELET THE COVER AND AVATAR IMAGE FROM CLOUDINARY
+
+let getUserChannelProfile = asyncHandler(async(req, res) => {
+    let {username} = req.params;
+    if(!username?.trim()){
+        throw new ApiError(400, "Username is required");
+    }
+    const channel = await User.aggregate([{
+        $match : {
+            username : username?.toLowerCase()
+        }
+    },{
+        $lookup :{
+            from : "subscriptions",
+            localField : "_id",
+            foreignField : "channel",
+            as : "subscribers"
+        }
+    },{
+        $lookup : {
+            from : "videos",
+            localField : "_id",
+            foreignField : "Subscriber",
+            as : "subscribedTo"
+        }
+    },{
+        $addFields: {
+            subscribersCount:{
+                $size: "$subscribers"//this is for count subscriber
+            },
+            channelSubscribe:{
+                $size : "$subscribedTo"//this is for count subscribe channel
+            },
+            isSubscribesd : {
+                $cond :{
+                    if :{$in:[req.user?._id, "$subscribers.Subscriber"]},//here we are checking that the user is in the subscriber or not
+                    then : true,
+                    else : false
+                }
+            }
+        }
+    },{
+        $project : {
+            fullName : 1,
+            username : 1,
+            subscribersCount : 1,
+            channelSubscribe : 1,
+            avatar : 1,
+            coverImage : 1,
+            email : 1,
+            isSubscribesd : 1
+        }
+    }]);
+    console.log(channel);
+
+    if(!channel?.length){
+        throw new ApiError(404, "Channel not found");
+    }
+    return res.status(200).json(
+        new apiResponese(200, channel[0], "Channel fetched successfully")
+    )
+});
+
+const getWatchHistory = asyncHandler(async(req, res) => {
+    const user = await User.aggregate([{
+        $match : {
+            _id : new mongoose.Types.ObjectId(req.user?._id)
+        }
+    },{
+        $lookup : {
+            from : "videos",
+            localField : "watchHistory",
+            foreignField : "_id",
+            as : "watchHistory",
+            pipeline : [{
+                $lookup : {
+                    from : "users",
+                    localField : "owner",
+                    foreignField : "_id",
+                    as : "owner",
+                    pipeline : [{
+                        $project : {
+                            fullName : 1,
+                            username : 1,
+                            avatar : 1
+                        }
+                    }]
+                }
+            },{
+                $addFields : {
+                    owner : {$first : "$owner"}
+                }
+            }
+        ]
+        }
+        }
+    ])
+    return res.status(200).json(
+        new apiResponese(200, user[0].watchHistory, "Watch history fetched successfully")
+    )
+});
+
 export {registerUser,
      loginUser,
      logoutUser,
@@ -282,4 +385,6 @@ export {registerUser,
      getCurrentUser,
      updateAccountDetails,
      changeAvatar,
-     changeCoverImage};
+     changeCoverImage,
+     getUserChannelProfile,
+     getWatchHistory};

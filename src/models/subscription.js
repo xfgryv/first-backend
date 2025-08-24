@@ -1,8 +1,4 @@
-import { timeStamp } from "console";
-import { channel } from "diagnostics_channel";
-import mongoose, { Schema } from "mongoose";
-import { type } from "os";
-import { ref } from "process";
+import mongoose, { Schema }  from "mongoose";
 
 let subscriptionSchema = new mongoose({
     Subscriber:{
@@ -15,4 +11,4 @@ let subscriptionSchema = new mongoose({
     }
 },{timeStamps : true});
 
-export let Subscription = mongoose.model("Subscription", subscriptionSchema);
+export const Subscription = mongoose.model("Subscription", subscriptionSchema);
