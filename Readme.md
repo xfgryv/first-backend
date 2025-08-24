@@ -4,4 +4,4 @@ If something new or diffrent thing happen in making this website, I will let you
 
 Thankyou :)
 
-authorized by: Chai aur Code
+
